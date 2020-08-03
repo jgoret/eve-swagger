@@ -267,6 +267,7 @@ You can use those parameters on the *get_swagger_blueprint* function :
 As an example :
 
 .. code-block:: python
+
     from eve import Eve
     from eve_swagger import get_swagger_blueprint, add_documentation
     app = Eve()
