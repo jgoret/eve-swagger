@@ -254,6 +254,29 @@ Like a description, an example can be added to a resource.
 The resource example overrides the example generated from the schema definition, and can be used to hide fields that are defined on the server side.
 The example is shown in the swagger ui in the parameters only.
 
+Use custom URLs
+---------------
+
+If needed, the exposed endpoints are configurable to customize them as you see fit
+You can use those parameters on the *get_swagger_blueprint* function :
+
+* **url_prefix** : Base URL for all the other eve-swagger's endpoints. Defaults to an empty string, should be the same as Eve's *URL_PREFIX* as best practice/
+* **json_url** URL used to expose eve-swagger's generated API documentation. Defaults to "/api-docs".
+* **ui_url** : URL used to access the ReDoc UI for your API. Defaults to "/docs", set it to an empty string to disable the UI.
+
+As an example :
+
+.. code-block:: python
+    from eve import Eve
+    from eve_swagger import get_swagger_blueprint, add_documentation
+    app = Eve()
+    swagger = get_swagger_blueprint(
+        url_prefix=app.config["URL_PREFIX"],
+        ui_url="/docs",
+        json_url="/openapi.json",
+    )
+    app.register_blueprint(swagger)
+    ...
 
 Copyright
 ---------
