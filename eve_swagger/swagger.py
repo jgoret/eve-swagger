@@ -45,32 +45,37 @@ from .paths import paths
 
 
 def get_swagger_blueprint(url_prefix="", json_url="/api-docs", ui_url="/docs"):
+    def _check_leading_slash(string):
+        if not string.startswith("/"):
+            return "/" + string
+        else:
+            return string
+
     swagger = Blueprint(
         "eve_swagger",
         __name__,
         template_folder="templates",
-        url_prefix=_check_trailing_slash(url_prefix),
+        url_prefix=_check_leading_slash(url_prefix),
     )
     swagger.additional_documentation = OrderedDict()
 
-    @swagger.route(_check_trailing_slash(json_url))
+    @swagger.route(_check_leading_slash(json_url))
     @_modify_response
     def index_json():
-        return jsonify(_compile_docs(swagger))
+        return jsonify(_compile_docs(swagger, _check_leading_slash(url_prefix)))
 
-    @swagger.route(_check_trailing_slash(ui_url))
+    @swagger.route(_check_leading_slash(ui_url))
     @_modify_response
     def index():
         return render_template(
             "index.html",
-            spec_url=_check_trailing_slash(url_prefix)
-            + _check_trailing_slash(json_url),
+            spec_url=_check_leading_slash(url_prefix) + _check_leading_slash(json_url),
         )
 
     return swagger
 
 
-def _compile_docs(swagger):
+def _compile_docs(swagger, url_prefix=""):
     def node(parent, key, value):
         if value:
             parent[key] = value
@@ -79,7 +84,7 @@ def _compile_docs(swagger):
     root["openapi"] = "3.0.0"
     node(root, "info", info())
     node(root, "servers", servers())
-    node(root, "paths", paths())
+    node(root, "paths", paths(url_prefix))
 
     components = OrderedDict()
     node(components, "schemas", definitions())
@@ -166,10 +171,3 @@ def _nested_update(orig_dict, new_dict):
         else:
             orig_dict[key] = new_dict[key]
     return orig_dict
-
-
-def _check_trailing_slash(string):
-    if not string.startswith("/"):
-        return "/" + string
-    else:
-        return string

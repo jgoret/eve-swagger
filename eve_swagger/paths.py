@@ -14,19 +14,20 @@ from textwrap import dedent
 from flask import current_app as app
 
 
-def paths():
-    def _clear_regex(_str):
+def paths(url_prefix=""):
+    def _clear_regex(_str,):
         noregex = "/".join(map(lambda x: re.sub("regex(.*):", "", x), _str.split("/")))
         noregex = noregex.replace("<", "{")
         noregex = noregex.replace(">", "}")
+        if noregex.startswith("/"):
+            noregex = noregex[1:]
         return noregex
 
     paths = OrderedDict()
     for resource, rd in app.config["DOMAIN"].items():
         if rd.get("disable_documentation") or resource.endswith("_versions"):
             continue
-
-        rd["url"] = _clear_regex(rd["url"])
+        rd["url"] = _clear_regex(url_prefix + "/" + rd["url"])
         rd["resource_title"] = _clear_regex(rd["resource_title"])
         methods = rd["resource_methods"]
         if methods:
