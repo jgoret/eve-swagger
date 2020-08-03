@@ -44,21 +44,28 @@ from .objects import (
 from .paths import paths
 
 
-def get_swagger_blueprint(url_prefix=""):
+def get_swagger_blueprint(url_prefix="", json_url="/api-docs", ui_url="/docs"):
     swagger = Blueprint(
-        "eve_swagger", __name__, template_folder="templates", url_prefix=url_prefix
+        "eve_swagger",
+        __name__,
+        template_folder="templates",
+        url_prefix=_check_trailing_slash(url_prefix),
     )
     swagger.additional_documentation = OrderedDict()
 
-    @swagger.route("/api-docs")
+    @swagger.route(_check_trailing_slash(json_url))
     @_modify_response
     def index_json():
         return jsonify(_compile_docs(swagger))
 
-    @swagger.route("/docs")
+    @swagger.route(_check_trailing_slash(ui_url))
     @_modify_response
     def index():
-        return render_template("index.html", spec_url="/api-docs")
+        return render_template(
+            "index.html",
+            spec_url=_check_trailing_slash(url_prefix)
+            + _check_trailing_slash(json_url),
+        )
 
     return swagger
 
@@ -159,3 +166,10 @@ def _nested_update(orig_dict, new_dict):
         else:
             orig_dict[key] = new_dict[key]
     return orig_dict
+
+
+def _check_trailing_slash(string):
+    if not string.startswith("/"):
+        return "/" + string
+    else:
+        return string
